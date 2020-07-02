@@ -9,6 +9,15 @@ def main():
 
     # Load base template file
     wb = load_workbook(filename = 'BASE Takeoff.xlsx')
+    ws = wb["Takeoff-SB"]
+
+    name = ws['A1']
+
+    ws['A1'] = project_name
+
+    file_name = f"Takeoff - {project_name}.xlsx"
+
+    wb.save(file_name)
 
     # Input project name
 
