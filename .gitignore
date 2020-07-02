@@ -1,1 +1,4 @@
 /workspace
+/venv
+/.vscode
+*.xlsx
