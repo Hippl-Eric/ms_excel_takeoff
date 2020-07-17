@@ -1,4 +1,9 @@
+import os
+
 from openpyxl import load_workbook
+from openpyxl.formula.translate import Translator
+from dotenv import load_dotenv
+from copy import copy
 
 def main():
 
@@ -15,25 +20,26 @@ def main():
     # Success
     return print("Success")
 
-def create_new_takeoff(project_name, num_rows, drilled):
+def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
 
     # Load base template file
-    # TODO load values from .env file
-    init_directory = "" # template location
-    dest_directory = "" # bids location
-    wb = load_workbook(filename = "BASE Takeoff.xlsx")
+    load_dotenv()
+    init_directory = os.getenv("TEMPLATE_DIR") # template location
+    dest_directory = os.getenv("BID_DIR") # bids location
+    wb = load_workbook(filename = f"{init_directory}\BASE Takeoff.xlsx")
     ws = wb["Takeoff-SB"]
 
     # Load cells
-    all_cells = []
+    all_cells = tuple(ws.rows)
 
     # Search for project name, drilled/driven, and first row, return locations
     name_cell = cell_search(all_cells, "PROJECTNAME -  TAKEOFF")
     drill_cell = cell_search(all_cells, "DRIVEN/DRILLED")
-    first_row_cell = cell_search(all_cells, "SB Nos.")
+    title_row_cell = cell_search(all_cells, "SB Nos.")
+    # test_cell = cell_search(all_cells, "NOT HERE VALUE")
 
     # Input project name
-    name_cell.value = project_name
+    name_cell.value = f"{project_name} - Takeoff"
 
     # Input drilled or driven
     if drilled:
@@ -41,8 +47,19 @@ def create_new_takeoff(project_name, num_rows, drilled):
     else:
         drill_cell.value = "DRIVEN"
 
-    # Insert rows below first row
-    copy_insert()
+    # Locate the first cell row
+    first_cell_row_index = title_row_cell.row + 1
+
+    # Insert new rows below first cell row
+    ws.insert_rows(first_cell_row_index + 1, num_sbs)
+
+    # Copy the first row values and styling, and paste on all added rows
+    for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = len(all_cells[0])):
+        copy_row(first_cell_row, num_sbs)
+
+    # TODO change value for # SB column C
+
+    # TODO fix sum row formulas
 
     # TODO
     # Set the new print area
@@ -54,10 +71,37 @@ def create_new_takeoff(project_name, num_rows, drilled):
     wb.save(file_name)
 
 def cell_search(cells, value):
-    pass
+    for row in cells:
+        for cell in row:
+            if cell.value == value:
+                return cell
+    raise AssertionError(f"value: {value} not found") 
 
-def copy_insert():
-    pass
+def copy_row(base_row, int_count):
+    """Copy all attributes of the [base_row] and paste [int_count] number of rows below the [base_row]"""
+
+    # Create list of style attributes to check later
+    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
+    style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
+
+    # Copy cells from top row to all inserted rows
+    for n in range(1, int_count + 1):
+        for cell in base_row:
+
+            # Select the new cell
+            new_cell = cell.offset(row=n, column=0)
+
+            # Translate the formula (if present) or just the value
+            try:
+                new_cell.value = Translator(cell.value, origin=cell.coordinate).translate_formula(new_cell.coordinate)
+            except TypeError:
+                new_cell.value = cell.value
+
+            # Copy any styling
+            if cell.has_style:
+                for style in style_list:
+                    setattr(new_cell, style, copy(getattr(cell, style)))
 
 if __name__ == "__main__":
-    main()
+    # main()
+    create_new_takeoff("New Project 1", 13, False)
