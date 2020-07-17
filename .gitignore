@@ -4,3 +4,4 @@
 *.xlsx
 *.bat
 /__pycache__
+.env
