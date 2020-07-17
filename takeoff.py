@@ -32,11 +32,10 @@ def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
     # Load cells
     all_cells = tuple(ws.rows)
 
-    # Search for project name, drilled/driven, and first row, return locations
+    # Search for project name, drilled/driven, and first row locations
     name_cell = cell_search(all_cells, "PROJECTNAME -  TAKEOFF")
     drill_cell = cell_search(all_cells, "DRIVEN/DRILLED")
     title_row_cell = cell_search(all_cells, "SB Nos.")
-    # test_cell = cell_search(all_cells, "NOT HERE VALUE")
 
     # Input project name
     name_cell.value = f"{project_name} - Takeoff"
@@ -71,9 +70,11 @@ def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
     wb.save(file_name)
 
 def cell_search(cells, value):
+    """Return cell location if equal to value"""
     for row in cells:
         for cell in row:
             if cell.value == value:
+                # TODO should this return a copy of cell? (may be pointing to all_cells tuple)
                 return cell
     raise AssertionError(f"value: {value} not found") 
 
