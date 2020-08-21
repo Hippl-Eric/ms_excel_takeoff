@@ -2,6 +2,7 @@ import os
 
 from openpyxl import load_workbook
 from openpyxl.formula.translate import Translator
+from openpyxl.formula import Tokenizer
 from dotenv import load_dotenv
 from copy import copy
 
@@ -20,7 +21,7 @@ def main():
     # Success
     return print("Success")
 
-def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
+def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
 
     # Load base template file
     load_dotenv()
@@ -29,8 +30,9 @@ def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
     wb = load_workbook(filename = f"{init_directory}\BASE Takeoff.xlsx")
     ws = wb["Takeoff-SB"]
 
-    # Load cells
+    # Load cells and determine number of columns
     all_cells = tuple(ws.rows)
+    num_col = len(all_cells[0])
 
     # Search for project name, drilled/driven, and first row locations
     name_cell = cell_search(all_cells, "PROJECTNAME -  TAKEOFF")
@@ -50,15 +52,20 @@ def create_new_takeoff(project_name: str, num_sbs: int, drilled: bool):
     first_cell_row_index = title_row_cell.row + 1
 
     # Insert new rows below first cell row
-    ws.insert_rows(first_cell_row_index + 1, num_sbs)
+    ws.insert_rows(first_cell_row_index + 1, num_rows)
 
     # Copy the first row values and styling, and paste on all added rows
-    for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = len(all_cells[0])):
-        copy_row(first_cell_row, num_sbs)
+    for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = num_col):
+        copy_row(first_cell_row, num_rows)
 
     # TODO change value for # SB column C
 
     # TODO fix sum row formulas
+    sum_row_index = first_cell_row_index + num_rows + 2
+    for row in ws.iter_rows(min_row = sum_row_index, max_row = sum_row_index + 1, max_col = num_col):
+        for cell in row:
+            fix_sum_row_cells(cell, num_rows)
+
 
     # TODO
     # Set the new print area
@@ -102,6 +109,21 @@ def copy_row(base_row, int_count):
             if cell.has_style:
                 for style in style_list:
                     setattr(new_cell, style, copy(getattr(cell, style)))
+
+def fix_sum_row_cells(cell, int_count):
+
+
+    # Select the cells old location
+    old_cell = cell.offset(row=(-int_count), column=0)
+
+    # Translate the formula (if present) or just the value
+    try:
+        cell.value = Translator(cell.value, origin=old_cell.coordinate).translate_formula(cell.coordinate)
+        # check for ranges
+        # tok = Tokenizer(cell.value)
+        # formula = tok.formula
+    except TypeError:
+        pass
 
 if __name__ == "__main__":
     # main()
