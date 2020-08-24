@@ -1,10 +1,9 @@
 import os
 
 from openpyxl import load_workbook
-from openpyxl.formula.translate import Translator
-from openpyxl.formula import Tokenizer
 from dotenv import load_dotenv
-from copy import copy
+
+from helpers import cell_search, copy_row, fix_sum_row_cells
 
 def main():
 
@@ -66,7 +65,6 @@ def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
         for cell in row:
             fix_sum_row_cells(cell, num_rows)
 
-
     # TODO
     # Set the new print area
     # ws.print_area = 'A1:F10'
@@ -76,54 +74,6 @@ def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
     file_name = f"Takeoff - {project_name}.xlsx"
     wb.save(file_name)
 
-def cell_search(cells, value):
-    """Return cell location if equal to value"""
-    for row in cells:
-        for cell in row:
-            if cell.value == value:
-                # TODO should this return a copy of cell? (may be pointing to all_cells tuple)
-                return cell
-    raise AssertionError(f"value: {value} not found") 
-
-def copy_row(base_row, int_count):
-    """Copy all attributes of the [base_row] and paste [int_count] number of rows below the [base_row]"""
-
-    # Create list of style attributes to check later
-    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
-    style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
-
-    # Copy cells from top row to all inserted rows
-    for n in range(1, int_count + 1):
-        for cell in base_row:
-
-            # Select the new cell
-            new_cell = cell.offset(row=n, column=0)
-
-            # Translate the formula (if present) or just the value
-            try:
-                new_cell.value = Translator(cell.value, origin=cell.coordinate).translate_formula(new_cell.coordinate)
-            except TypeError:
-                new_cell.value = cell.value
-
-            # Copy any styling
-            if cell.has_style:
-                for style in style_list:
-                    setattr(new_cell, style, copy(getattr(cell, style)))
-
-def fix_sum_row_cells(cell, int_count):
-
-
-    # Select the cells old location
-    old_cell = cell.offset(row=(-int_count), column=0)
-
-    # Translate the formula (if present) or just the value
-    try:
-        cell.value = Translator(cell.value, origin=old_cell.coordinate).translate_formula(cell.coordinate)
-        # check for ranges
-        # tok = Tokenizer(cell.value)
-        # formula = tok.formula
-    except TypeError:
-        pass
 
 if __name__ == "__main__":
     # main()
