@@ -32,13 +32,18 @@ class TestHelperFunctions(unittest.TestCase):
         # What are we testing for?
         # Check the worksheet has the correct num rows
         # check the inserted rows values match the base row
-        for base_row in self.ws.iter_rows(min_row=3, max_row=3, max_col=self.num_col):
+        for base_row in self.ws.iter_rows(min_row=base_row_idx, max_row=base_row_idx, max_col=self.num_col):
             helpers.copy_row(self.ws, base_row, num_rows)
         self.wb.save('result_copy_row.xlsx')
 
 
     def test_fix_sum_row_cells(self):
-        pass
+        sum_row_idx = 16
+        num_rows = 5
+        for sum_row in self.ws.iter_rows(min_row=sum_row_idx, max_row=sum_row_idx, max_col=self.num_col):
+            for cell in sum_row:
+                helpers.fix_sum_row_cells(cell, num_rows)
+        self.wb.save('result_fix_sum_row_cells.xlsx')
 
 if __name__ == "__main__":
     unittest.main()
