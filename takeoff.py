@@ -50,12 +50,9 @@ def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
     # Locate the first cell row
     first_cell_row_index = title_row_cell.row + 1
 
-    # Insert new rows below first cell row
-    ws.insert_rows(first_cell_row_index + 1, num_rows)
-
     # Copy the first row values and styling, and paste on all added rows
     for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = num_col):
-        copy_row(first_cell_row, num_rows)
+        copy_row(ws, first_cell_row, num_rows)
 
     # TODO change value for # SB column C
 

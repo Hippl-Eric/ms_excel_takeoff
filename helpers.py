@@ -11,9 +11,10 @@ def cell_search(cells, value):
                 return cell
     raise AssertionError(f"value: {value} not found") 
 
-def copy_row(base_row, int_count):
+def copy_row(work_sheet, base_row, int_count):
     """Copy all attributes of the [base_row] and paste [int_count] number of rows below the [base_row]
     
+    [work_sheet] active worksheet
     [base_row] must be a tuple containing a single row cell range.
     [int_count] must be a positive integer.
     """
@@ -22,9 +23,14 @@ def copy_row(base_row, int_count):
     # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
     style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
 
-    # Copy cells from top row to all inserted rows
-    for n in range(1, int_count + 1):
-        for cell in base_row:
+    # Insert rows below the base_row
+    work_sheet.insert_rows(base_row[0].row + 1, int_count)
+
+    # Iterate over each cell in the base row
+    for cell in base_row:
+
+        # Copy cell attributes and paste to all inserted rows
+        for n in range(1, int_count + 1):
 
             # Select the new cell
             new_cell = cell.offset(row=n, column=0)
