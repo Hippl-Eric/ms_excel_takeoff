@@ -23,13 +23,19 @@ class TestHelperFunctions(unittest.TestCase):
         result_4 = self.ws['C5']
         self.assertEqual(helpers.cell_search(self.all_cells, 'TEXT'), result_1)
         self.assertEqual(helpers.cell_search(self.all_cells, 'more Text'), result_2)
-        self.assertEqual(helpers.cell_search(self.all_cells, '=not_a_formula'), result_2)
+        self.assertEqual(helpers.cell_search(self.all_cells, '=not_a_formula'), result_3)
         self.assertEqual(helpers.cell_search(self.all_cells, 'SOME_TEXT'), result_4)
 
     def test_copy_row(self):
-        base_row = self.ws['A3:D3']
-        int_count = 3
-        
+        base_row_idx = 3
+        num_rows = 5
+        # What are we testing for?
+        # Check the worksheet has the correct num rows
+        # check the inserted rows values match the base row
+        for base_row in self.ws.iter_rows(min_row=3, max_row=3, max_col=self.num_col):
+            helpers.copy_row(self.ws, base_row, num_rows)
+        self.wb.save('result_copy_row.xlsx')
+
 
     def test_fix_sum_row_cells(self):
         pass
