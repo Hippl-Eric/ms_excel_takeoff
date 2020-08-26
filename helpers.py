@@ -46,8 +46,7 @@ def copy_row(work_sheet, base_row, int_count):
                 for style in style_list:
                     setattr(new_cell, style, copy(getattr(cell, style)))
 
-def fix_sum_row_cells(cell, int_count):
-
+def fix_sum_row_cells(work_sheet, cell, int_count):
 
     # Select the cells old location
     old_cell = cell.offset(row=(-int_count), column=0)
@@ -56,15 +55,38 @@ def fix_sum_row_cells(cell, int_count):
     try:
         cell.value = Translator(cell.value, origin=old_cell.coordinate).translate_formula(cell.coordinate)
         
-        # Check for formuals with ranges
-        if ":" in cell.value:
-            correct_range_row(cell.value, int_count)
+        # Correct formulas with ranges
+        cell.value = correct_range_row(work_sheet, cell, cell.value, int_count)
 
     # Skip cells with no formulas
     except TypeError:
         pass
 
-def correct_range_row(formula, int_count):
+def correct_range_row(work_sheet, cell, formula_string, int_count):
     """Recursive helper function for correcting formulas that include ranges.
     The built in openpyxl formula Translator does not handle ranges with rows inserted."""
-    colon_index = formula.find(":")
+
+    if ":" not in formula_string:
+        return formula_string
+
+    else:
+        # Find first range coordinate between "(" and ":"
+        colon_idx = formula_string.find(":")
+        paren_idx = formula_string.rfind("(", 0, colon_idx)
+        coordinate = formula_string[paren_idx + 1: colon_idx]
+
+        # Convert coordinate to cell
+        cell_obj = work_sheet[coordinate]
+
+        # Use offset to correct cell coordinate
+        new_cell_obj = cell_obj.offset(row=(-int_count), column=0)
+
+        # Return the cells new coordinate to string
+        new_coordinate = new_cell_obj.coordinate
+
+        # Put string back together
+        left_half = formula_string[0: paren_idx + 1] + new_coordinate + formula_string[colon_idx: colon_idx + 1]
+        right_half = correct_range_row(work_sheet, cell, formula_string[colon_idx + 1:], int_count)
+        new_formula = left_half + right_half
+
+        return new_formula

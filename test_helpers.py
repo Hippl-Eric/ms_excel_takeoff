@@ -42,7 +42,7 @@ class TestHelperFunctions(unittest.TestCase):
         num_rows = 5
         for sum_row in self.ws.iter_rows(min_row=sum_row_idx, max_row=sum_row_idx, max_col=self.num_col):
             for cell in sum_row:
-                helpers.fix_sum_row_cells(cell, num_rows)
+                helpers.fix_sum_row_cells(self.ws, cell, num_rows)
         self.wb.save('result_fix_sum_row_cells.xlsx')
 
 if __name__ == "__main__":
