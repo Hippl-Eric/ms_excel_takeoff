@@ -12,9 +12,11 @@ class TestHelperFunctions(unittest.TestCase):
         self.all_cells = tuple(self.ws.rows)
         self.num_col = len(self.all_cells[0])
 
-
     def tearDown(self):
-        pass
+        del self.wb
+        del self.ws
+        del self.all_cells
+        del self.num_col
 
     def test_cell_search(self):
         result_1 = self.ws['A1']
@@ -25,13 +27,12 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(helpers.cell_search(self.all_cells, 'more Text'), result_2)
         self.assertEqual(helpers.cell_search(self.all_cells, '=not_a_formula'), result_3)
         self.assertEqual(helpers.cell_search(self.all_cells, 'SOME_TEXT'), result_4)
+        with self.assertRaises(AssertionError):
+            helpers.cell_search(self.all_cells, "foobar")
 
     def test_copy_row(self):
         base_row_idx = 3
         num_rows = 5
-        # What are we testing for?
-        # Check the worksheet has the correct num rows
-        # check the inserted rows values match the base row
         for base_row in self.ws.iter_rows(min_row=base_row_idx, max_row=base_row_idx, max_col=self.num_col):
             helpers.copy_row(self.ws, base_row, num_rows)
         self.wb.save('result_copy_row.xlsx')
