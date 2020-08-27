@@ -56,11 +56,11 @@ def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
 
     # TODO change value for # SB column C
 
-    # TODO fix sum row formulas
+    # Correct forumlas in sum row
     sum_row_index = first_cell_row_index + num_rows + 2
-    for row in ws.iter_rows(min_row = sum_row_index, max_row = sum_row_index + 1, max_col = num_col):
-        for cell in row:
-            fix_sum_row_cells(cell, num_rows)
+    for sum_row in ws.iter_rows(min_row = sum_row_index, max_row = sum_row_index + 1, max_col = num_col):
+        for cell in sum_row:
+            fix_sum_row_cells(ws, cell, num_rows)
 
     # TODO
     # Set the new print area
