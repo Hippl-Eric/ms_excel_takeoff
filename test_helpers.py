@@ -1,13 +1,16 @@
+import os
 import unittest
 
 from openpyxl import load_workbook
+from dotenv import load_dotenv
 
 import helpers
 
 class TestHelperFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.wb = load_workbook(filename="test_workbook.xlsx")
+        self.directory = os.getenv("TEST_DIR")
+        self.wb = load_workbook(filename=f"{self.directory}test_workbook.xlsx")
         self.ws = self.wb.active
         self.all_cells = tuple(self.ws.rows)
         self.num_col = len(self.all_cells[0])
@@ -35,7 +38,7 @@ class TestHelperFunctions(unittest.TestCase):
         num_rows = 5
         for base_row in self.ws.iter_rows(min_row=base_row_idx, max_row=base_row_idx, max_col=self.num_col):
             helpers.copy_row(self.ws, base_row, num_rows)
-        self.wb.save('result_copy_row.xlsx')
+        self.wb.save(f'{self.directory}result_copy_row.xlsx')
 
 
     def test_fix_sum_row_cells(self):
@@ -44,8 +47,9 @@ class TestHelperFunctions(unittest.TestCase):
         for sum_row in self.ws.iter_rows(min_row=sum_row_idx, max_row=sum_row_idx, max_col=self.num_col):
             for cell in sum_row:
                 helpers.fix_sum_row_cells(self.ws, cell, num_rows)
-        self.wb.save('result_fix_sum_row_cells.xlsx')
+        self.wb.save(f'{self.directory}result_fix_sum_row_cells.xlsx')
 
 if __name__ == "__main__":
+    load_dotenv()
     unittest.main()
     
