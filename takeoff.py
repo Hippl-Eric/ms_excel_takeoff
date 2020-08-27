@@ -15,18 +15,30 @@ def main():
     if install == "no" or install == "No" or install == "n" or install == "N" or install == "NO":
         drilled = False
 
-    create_new_takeoff(project_name, num_rows, drilled)
+    # Load directory locations and template file
+    load_dotenv()
+    init_directory = os.getenv("TEMPLATE_DIR") # template location
+    dest_directory = os.getenv("BID_DIR") # bids location
+    template_file = os.getenv("TEMPLATE_FILE")
+
+    create_new_takeoff(template_file, project_name, num_rows, drilled, init_directory, dest_directory)
 
     # Success
     return print("Success")
 
-def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
+def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir = "", dest_dir = ""):
+"""Description
+
+[template_file] string filename.  Cannot start with "\""
+[project_name] string
+[num_rows] int
+[drilled] bool
+[temp_dir] Optional string. Directory of template file. Default is current directory.
+[dest_dir] Optional string. Directory to save new file. Default is current directory.
+"""
 
     # Load base template file
-    load_dotenv()
-    init_directory = os.getenv("TEMPLATE_DIR") # template location
-    dest_directory = os.getenv("BID_DIR") # bids location
-    wb = load_workbook(filename = f"{init_directory}\BASE Takeoff.xlsx")
+    wb = load_workbook(filename = f"{temp_dir}{template_file}")
     ws = wb["Takeoff-SB"]
 
     # Load cells and determine number of columns
@@ -74,4 +86,4 @@ def create_new_takeoff(project_name: str, num_rows: int, drilled: bool):
 
 if __name__ == "__main__":
     # main()
-    create_new_takeoff("New Project 1", 13, False)
+    create_new_takeoff("BASE Takeoff.xlsx", "New Project 1", 13, False)
