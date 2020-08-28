@@ -17,28 +17,28 @@ def main():
 
     # Load directory locations and template file
     load_dotenv()
-    init_directory = os.getenv("TEMPLATE_DIR") # template location
-    dest_directory = os.getenv("BID_DIR") # bids location
+    template_dir = os.getenv("TEMPLATE_DIR") # template location
+    dest_dir = os.getenv("BID_DIR") # bids location
     template_file = os.getenv("TEMPLATE_FILE")
 
-    create_new_takeoff(template_file, project_name, num_rows, drilled, init_directory, dest_directory)
+    create_new_takeoff(template_file, project_name, num_rows, drilled, template_dir, dest_dir)
 
     # Success
     return print("Success")
 
-def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir = "", dest_dir = ""):
-"""Description
+def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir, dest_dir):
+    """Description
 
-[template_file] string filename.  Cannot start with "\""
-[project_name] string
-[num_rows] int
-[drilled] bool
-[temp_dir] Optional string. Directory of template file. Default is current directory.
-[dest_dir] Optional string. Directory to save new file. Default is current directory.
-"""
+    [template_file] string, filename
+    [project_name] string
+    [num_rows] int
+    [drilled] bool
+    [temp_dir] string, directory of template file
+    [dest_dir] string, directory to save new file
+    """
 
     # Load base template file
-    wb = load_workbook(filename = f"{temp_dir}{template_file}")
+    wb = load_workbook(filename = f"{temp_dir}\\{template_file}")
     ws = wb["Takeoff-SB"]
 
     # Load cells and determine number of columns
@@ -80,10 +80,9 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir 
 
     # Save in new project directory
     # TODO add path to bid files, handle error if path not found
-    file_name = f"Takeoff - {project_name}.xlsx"
+    file_name = f"{dest_dir}\\Takeoff - {project_name}.xlsx"
     wb.save(file_name)
 
 
 if __name__ == "__main__":
-    # main()
-    create_new_takeoff("BASE Takeoff.xlsx", "New Project 1", 13, False)
+    main()
