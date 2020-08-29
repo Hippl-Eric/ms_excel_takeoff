@@ -80,9 +80,18 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
         ws.cell(row=row_num, column=sb_column, value=str(start_sb))
         start_sb += 1
 
-    # TODO
-    # Set the new print area
-    # ws.print_area = 'A1:F10'
+    # Correct the print area
+    old_area = ws.print_area[0]
+    colon_idx = old_area.find(":")
+    end_coordinate = old_area[colon_idx + 1:]
+
+    # Convert end_coordinate to cell, offset, return to coordinate
+    end_coordinate_cell_obj = ws[end_coordinate]
+    end_coordinate_new_cell_obj = end_coordinate_cell_obj.offset(row=num_rows, column=0)
+    end_coordinate_new = end_coordinate_new_cell_obj.coordinate
+
+    # Set print area
+    ws.print_area = f"{old_area[:colon_idx + 1]}{end_coordinate_new}"
 
     # Save in new project directory
     # TODO add path to bid files, handle error if path not found
