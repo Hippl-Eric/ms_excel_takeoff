@@ -8,6 +8,7 @@ from helpers import cell_search, copy_row, fix_sum_row_cells
 def main():
 
     # Request and parse user inputs
+    # TODO parse user inputs
     project_name = input("Project Name: ")
     num_rows = int(input("Number of SBs: ")) - 1
     drilled = True
@@ -66,13 +67,18 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
     for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = num_col):
         copy_row(ws, first_cell_row, num_rows)
 
-    # TODO change value for # SB column C
-
     # Correct forumlas in sum row
     sum_row_index = first_cell_row_index + num_rows + 2
     for sum_row in ws.iter_rows(min_row = sum_row_index, max_row = sum_row_index + 1, max_col = num_col):
         for cell in sum_row:
             fix_sum_row_cells(ws, cell, num_rows)
+            
+    # Change value for "SB Nos."
+    sb_column = title_row_cell.column
+    start_sb = 1
+    for row_num in range(first_cell_row_index, first_cell_row_index + num_rows + 1):
+        ws.cell(row=row_num, column=sb_column, value=str(start_sb))
+        start_sb += 1
 
     # TODO
     # Set the new print area
