@@ -93,11 +93,15 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
     # Set print area
     ws.print_area = f"{old_area[:colon_idx + 1]}{end_coordinate_new}"
 
-    # Save in new project directory
-    # TODO add path to bid files, handle error if path not found
-    file_name = f"{dest_dir}\\Takeoff - {project_name}.xlsx"
-    wb.save(file_name)
-
+    # Save workbook in new project directory
+    file_name = f"{dest_dir}\\{project_name}\\PRICING\\Takeoff - {project_name}.xlsx"
+    while file_name != f"quit\\Takeoff - {project_name}.xlsx":
+        try:
+            wb.save(file_name)
+            break
+        except FileNotFoundError:
+            file_path = input("Bid file location not found. Specifiy path to save file, or 'quit':  ")
+            file_name = f"{file_path}\\Takeoff - {project_name}.xlsx"
 
 if __name__ == "__main__":
     main()
