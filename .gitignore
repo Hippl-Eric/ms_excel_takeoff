@@ -5,3 +5,4 @@
 *.bat
 /__pycache__
 .env
+/files
