@@ -22,10 +22,12 @@ def main():
     dest_dir = os.getenv("BID_DIR") # bids location
     template_file = os.getenv("TEMPLATE_FILE")
 
-    create_new_takeoff(template_file, project_name, num_rows, drilled, template_dir, dest_dir)
+    takeoff_complete = create_new_takeoff(template_file, project_name, num_rows, drilled, template_dir, dest_dir)
 
-    # Success
-    return print("Success")
+    if takeoff_complete:
+        return print("Success")
+    else:
+        return print("Not completed")
 
 def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir, dest_dir):
     """Description
@@ -98,10 +100,11 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
     while file_name != f"quit\\Takeoff - {project_name}.xlsx":
         try:
             wb.save(file_name)
-            break
+            return True
         except FileNotFoundError:
             file_path = input("Bid file location not found. Specifiy path to save file, or 'quit':  ")
             file_name = f"{file_path}\\Takeoff - {project_name}.xlsx"
+    return False
 
 if __name__ == "__main__":
     main()
