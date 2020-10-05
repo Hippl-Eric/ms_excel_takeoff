@@ -52,7 +52,7 @@ def copy_row(work_sheet, base_row, int_count):
 
 def fix_sum_row_cells(work_sheet, cell, int_count):
     """Correct formulas for the summation row below inserted rows.
-    No modifications to styling neccesary.
+    No modifications to styling necessary.
     
     [work_sheet] active worksheet.
     [cell] single cell.

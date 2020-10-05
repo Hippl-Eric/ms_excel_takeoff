@@ -102,7 +102,7 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
             wb.save(file_name)
             return True
         except FileNotFoundError:
-            file_path = input("Bid file location not found. Specifiy path to save file, or 'quit':  ")
+            file_path = input("Bid file location not found. Specify path to save file, or 'quit':  ")
             file_name = f"{file_path}\\Takeoff - {project_name}.xlsx"
     return False
 
