@@ -36,19 +36,24 @@ class TestHelperFunctions(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_create_new_takeoff(self):
+    def test_num_rows(self):
 
         # Check num rows
         self.assertEqual(len(self.test_cells), len(self.check_cells))
 
+    def test_num_cols(self):
+
         # Check num columns
         self.assertEqual(len(self.test_cells[0]), len(self.check_cells[0]))
+
+    def test_print_area(self):
 
         # Check print area
         self.assertEqual(self.test_ws.print_area[0], self.check_ws.print_area[0])
 
+    def test_cell_vals(self):
+
         # Check each cell
-        style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
         for test_row, check_row in zip(self.test_cells, self.check_cells):
             for test_cell, check_cell in zip(test_row, check_row):
 
@@ -57,8 +62,13 @@ class TestHelperFunctions(unittest.TestCase):
                 self.assertEqual(test_cell.coordinate, check_cell.coordinate)
                 self.assertEqual(test_cell.has_style, check_cell.has_style)
 
-                # Check Style
-                # TODO                            
+    def test_cell_style(self):
+
+        # Styles to check
+        style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
+
+        # Check Style
+        # TODO                            
 
 if __name__ == "__main__":
     load_dotenv()
