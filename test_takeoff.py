@@ -34,7 +34,8 @@ class TestHelperFunctions(unittest.TestCase):
         self.check_cells = tuple(self.check_ws)
 
     def tearDown(self):
-        pass
+        self.test_wb.close()
+        self.check_wb.close()
 
     def test_num_rows(self):
 
@@ -58,18 +59,62 @@ class TestHelperFunctions(unittest.TestCase):
             for test_cell, check_cell in zip(test_row, check_row):
 
                 # Check value, coordinate, and has_style
-                self.assertEqual(test_cell.value, check_cell.value)
+                self.assertEqual(test_cell.value, check_cell.value, f"Cell: --{test_cell.coordinate}--, values not equal")
                 self.assertEqual(test_cell.coordinate, check_cell.coordinate)
-                self.assertEqual(test_cell.has_style, check_cell.has_style)
+                self.assertEqual(test_cell.has_style, check_cell.has_style, f"Cell: --{test_cell.coordinate}--, .has_style not equal")
 
     def test_cell_style(self):
 
         # Styles to check
         style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
 
-        # Check Style
-        # TODO                            
+        # Check each cell
+        for test_row, check_row in zip(self.test_cells, self.check_cells):
+            for test_cell, check_cell in zip(test_row, check_row):
 
+                # Only test cells with style
+                if test_cell.has_style or check_cell.has_style:
+                    for style in style_list:
+                        
+                        # Get the style objects which are values for each style attribute, default None if not present
+                        test_style_obj = getattr(test_cell, style, None)
+                        check_style_obj = getattr(check_cell, style, None)
+                        self.comp_dict(dict_1=test_style_obj, dict_2=check_style_obj, traversal=[], style=[style], coordinate=test_cell.coordinate)
+
+                                
+    def comp_dict(self, dict_1, dict_2, style=[], traversal=[], coordinate=None):
+        """
+        Helper function to recursively return each style object's attributes.
+        Style objects can contain nested objects.
+        Return, error message if attribute does not match
+        """
+        try:
+            
+            # Ensure dict_1 and dict_2 are objects or dict types
+            # Will return TypeError if not dict type
+            var_dict_1 = vars(dict_1)
+            var_dict_2 = vars(dict_2)
+        except TypeError:
+            
+            # Not dict type - compare values
+            self.assertEqual(dict_1, dict_2, f"Cell: --{coordinate}--, {style}-{traversal} not equal")
+        else:
+            
+            # dict_1 and dict_2 are in fact dicts, get their attributes and check each one
+            for style_attr in var_dict_1:
+                val_1 = getattr(dict_1, style_attr)
+                val_2 = getattr(dict_2, style_attr)
+                
+                # Use a traversal list to track nested objects for error messaging
+                traversal += [style_attr]
+                style = style
+                coordinate = coordinate
+                
+                # Recursively check each attribute
+                self.comp_dict(val_1, val_2, style=style, traversal=traversal, coordinate=coordinate)
+                traversal = [] 
+                # TODO Traversal not working perfectly yet, used to follow nested object trail... not really necessary
+            
 if __name__ == "__main__":
     load_dotenv()
     unittest.main()
