@@ -1,5 +1,6 @@
 from openpyxl.formula.translate import Translator
 from openpyxl.formula import Tokenizer
+from openpyxl.utils.cell import coordinate_from_string
 
 from copy import copy
 
@@ -32,6 +33,9 @@ def copy_row(work_sheet, base_row, int_count):
 
     # Iterate over each cell in the base row
     for cell in base_row:
+        
+        # Correct formulas in base row with coordinate or range greater than base row index prior to copy
+        correct_formula(cell=cell, start_row_idx=base_row[0].row, int_count=int_count)
 
         # Copy cell attributes and paste to all inserted rows
         for n in range(1, int_count + 1):
@@ -50,59 +54,75 @@ def copy_row(work_sheet, base_row, int_count):
                 for style in style_list:
                     setattr(new_cell, style, copy(getattr(cell, style)))
 
-def fix_sum_row_cells(work_sheet, cell, int_count):
-    """Correct formulas for the summation row below inserted rows.
-    No modifications to styling necessary.
-    
-    [work_sheet] active worksheet.
-    [cell] single cell.
-    [int_count] must be a positive integer.
+def correct_formula(cell, start_row_idx, int_count):
     """
-
-    # Select the cells old location
-    old_cell = cell.offset(row=(-int_count), column=0)
-
-    # Translate the formula (if present)
+    Correct the [cell]'s formula after [int_count] number of rows inserted below [start_row_idx]
+    Mimics Excel's built in functionality for a cell's formula to be relative (not absolute)
+    """
+    # Parse only cells with formulas
     try:
-        cell.value = Translator(cell.value, origin=old_cell.coordinate).translate_formula(cell.coordinate)
-        
-        # Correct formulas with ranges
-        cell.value = correct_range_row(work_sheet, cell.value, int_count)
-
-    # Skip cells with no formulas
-    except TypeError:
+        formula = cell.value.startswith("=")
+    except AttributeError:
         pass
-
-def correct_range_row(work_sheet, formula_string, int_count):
-    """Recursive helper function for correcting formulas that include ranges.
-    Built in openpyxl formula Translator does not handle ranges with rows inserted.
-    
-    [work_sheet] active worksheet
-    [formula_string] string cell.value.
-    [int_count] must be a positive integer.
-    """
-
-    if ":" not in formula_string:
-        return formula_string
-
     else:
-        # Find first range coordinate before ":"
-        colon_idx = formula_string.find(":")
-        paren_idx = formula_string.rfind("(", 0, colon_idx)
-        coordinate = formula_string[paren_idx + 1: colon_idx]
-
-        # Convert coordinate to cell
-        cell_obj = work_sheet[coordinate]
-
-        # Use offset to correct cell coordinate
-        new_cell_obj = cell_obj.offset(row=(-int_count), column=0)
-
-        # Return the cells new coordinate to string
-        new_coordinate = new_cell_obj.coordinate
-
-        # Put formula string back together
-        left_half = formula_string[0: paren_idx + 1] + new_coordinate + formula_string[colon_idx: colon_idx + 1]
-        right_half = correct_range_row(work_sheet, formula_string[colon_idx + 1:], int_count)
-        new_formula = left_half + right_half
-
-        return new_formula
+        if formula:
+            
+            # Tokenize formula and make list of all coordinates and ranges
+            formula_str = cell.value
+            tok = Tokenizer(formula_str)
+            original_vals = [t.value for t in tok.items if t.subtype == 'RANGE']
+            
+            # Create list for parsed values to be added to
+            parsed_vals = []
+            
+            # Check all original coordinate and range values
+            for orig_cell_range in original_vals:
+                
+                # If coorindate
+                if ":" not in orig_cell_range:
+                    
+                    # Parse
+                    parsed_cell_range = correct_row_index(orig_cell_range, start_row_idx, int_count)
+                
+                # If range
+                else:
+                    
+                    # Split coordinates at ":"
+                    colon_idx = orig_cell_range.find(":")
+                    first_coordinate = orig_cell_range[0:colon_idx]
+                    second_coordinate = orig_cell_range[colon_idx+1:]
+                    
+                    # Send each coordinate to parse
+                    first_parsed = correct_row_index(first_coordinate, start_row_idx, int_count)
+                    second_parsed = correct_row_index(second_coordinate, start_row_idx, int_count)
+                    
+                    # Put range back together
+                    parsed_cell_range = f"{first_parsed}:{second_parsed}"
+                    
+                # Add parsed values to the parsed list (may be unchanged)
+                parsed_vals.append(parsed_cell_range)
+                
+            # Replace all original coordinates of formula with parsed coordinates
+            for orig, parsed in zip(original_vals, parsed_vals):
+                formula_str = formula_str.replace(orig, parsed, 1)
+            
+            # Set the cell's value to new formula string
+            cell.value = formula_str
+    
+def correct_row_index(cell_coordinate, start_row_idx, int_count):
+    """
+    Helper function to correct_formula()
+    Determines whether cell's coordinate needs to be corrected (row index > [start_row_idx])
+    Adds [int_count] to row index
+    """
+    
+    # Break into column, row
+    col, row = coordinate_from_string(cell_coordinate)
+    
+    # Add int_count to row index
+    if row > start_row_idx:
+        new_row = row + int_count
+        cell_coordinate = cell_coordinate.replace(str(row), str(new_row))
+    
+    return cell_coordinate
+    

@@ -3,7 +3,7 @@ import os
 from openpyxl import load_workbook
 from dotenv import load_dotenv
 
-from helpers import cell_search, copy_row, fix_sum_row_cells
+from helpers import cell_search, copy_row, correct_formula
 
 def main():
 
@@ -44,9 +44,10 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
     wb = load_workbook(filename = f"{temp_dir}\\{template_file}")
     ws = wb["Takeoff-SB"]
 
-    # Load cells and determine number of columns
+    # Load cells and determine number of rows and columns
     all_cells = tuple(ws.rows)
-    num_col = len(all_cells[0])
+    len_rows = len(all_cells)
+    len_col = len(all_cells[0])
 
     # Search for project name, drilled/driven, and first row locations
     name_cell = cell_search(all_cells, "PROJECTNAME -  TAKEOFF")
@@ -66,15 +67,19 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
     first_cell_row_index = title_row_cell.row + 1
 
     # Copy the first row values and styling, and paste on all added rows
-    for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = num_col):
+    for first_cell_row in ws.iter_rows(min_row = first_cell_row_index, max_row = first_cell_row_index, max_col = len_col):
         copy_row(ws, first_cell_row, num_rows)
+        
+    # Fix formulas above first cell row
+    for row in ws.iter_rows(min_row = 1, max_row = first_cell_row_index - 1, max_col = len_col):
+        for cell in row:
+            correct_formula(cell=cell, start_row_idx=first_cell_row_index, int_count=num_rows)
+    
+    # Fix formulas below inserted rows
+    for row in ws.iter_rows(min_row = first_cell_row_index + num_rows + 1, max_row = len_rows + num_rows, max_col = len_col):
+        for cell in row:
+            correct_formula(cell=cell, start_row_idx=first_cell_row_index, int_count=num_rows)
 
-    # Correct forumlas in sum row
-    sum_row_index = first_cell_row_index + num_rows + 2
-    for sum_row in ws.iter_rows(min_row = sum_row_index, max_row = sum_row_index + 1, max_col = num_col):
-        for cell in sum_row:
-            fix_sum_row_cells(ws, cell, num_rows)
-            
     # Change value for "SB Nos."
     sb_column = title_row_cell.column
     start_sb = 1
