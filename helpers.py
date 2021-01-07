@@ -23,21 +23,37 @@ def copy_row(work_sheet, base_row, int_count):
     [base_row] must be a tuple containing a single row cell range.
     [int_count] must be a positive integer.
     """
+    base_row_idx = base_row[0].row
 
     # Create list of style attributes to check later
     # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
     style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
 
+    # Correct any merged cells below the base row
+    correct_merge_cells(work_sheet, base_row_idx, int_count)
+    
+    # Correct worksheet row heights for rows below the base row
+    correct_row_heights(work_sheet, base_row_idx, int_count)
+    
+    # TODO List drop down menus
+    # TODO Comments
+    
     # Insert rows below the base_row
-    work_sheet.insert_rows(base_row[0].row + 1, int_count)
-
+    work_sheet.insert_rows(base_row_idx + 1, int_count)
+    
+    # Match row heights of inserted rows with base row height
+    base_row_height = work_sheet.row_dimensions[base_row_idx].height
+    if base_row_height:
+        for i in range(base_row_idx+1,base_row_idx+1+int_count):
+            work_sheet.row_dimensions[i].height = base_row_height
+    
     # Iterate over each cell in the base row
     for cell in base_row:
         
         # Correct formulas in base row with coordinate or range greater than base row index prior to copy
-        correct_formula(cell=cell, start_row_idx=base_row[0].row, int_count=int_count)
+        correct_formula(cell=cell, start_row_idx=base_row_idx, int_count=int_count)
 
-        # Copy cell attributes and paste to all inserted rows
+        # Copy cell value and styling and paste to all inserted rows
         for n in range(1, int_count + 1):
 
             # Select the new cell
@@ -53,6 +69,35 @@ def copy_row(work_sheet, base_row, int_count):
             if cell.has_style:
                 for style in style_list:
                     setattr(new_cell, style, copy(getattr(cell, style)))
+
+def correct_merge_cells(work_sheet, base_row_idx, int_count):
+    
+    # Create a list of all merged cell ranges BELOW the base row
+    merged_cells_list = [item.coord for item in work_sheet.merged_cells.ranges if item.max_row > base_row_idx]
+    
+    for cell_range in merged_cells_list:
+        
+        # Un-merge the oringal range
+        work_sheet.unmerge_cells(cell_range)
+        
+        # Parse and merge the new range
+        parsed_cell_range = correct_row_index(cell_range, base_row_idx, int_count)
+        work_sheet.merge_cells(parsed_cell_range)
+        
+def correct_row_heights(work_sheet, base_row_idx, int_count):
+    
+    # Create list of initial row heights
+    work_sheet_row_heights = {idx: dim.height for idx, dim in work_sheet.row_dimensions.items()}
+    for idx, height in work_sheet_row_heights.items():
+        
+        # Change row heights for rows below base row
+        if idx > base_row_idx:
+            
+            # Delete the original row height object
+            del work_sheet.row_dimensions[idx]
+            
+            # Set new row 
+            work_sheet.row_dimensions[idx + int_count].height = height
 
 def correct_formula(cell, start_row_idx, int_count):
     """
@@ -78,26 +123,8 @@ def correct_formula(cell, start_row_idx, int_count):
             # Check all original coordinate and range values
             for orig_cell_range in original_vals:
                 
-                # If coorindate
-                if ":" not in orig_cell_range:
-                    
-                    # Parse
-                    parsed_cell_range = correct_row_index(orig_cell_range, start_row_idx, int_count)
-                
-                # If range
-                else:
-                    
-                    # Split coordinates at ":"
-                    colon_idx = orig_cell_range.find(":")
-                    first_coordinate = orig_cell_range[0:colon_idx]
-                    second_coordinate = orig_cell_range[colon_idx+1:]
-                    
-                    # Send each coordinate to parse
-                    first_parsed = correct_row_index(first_coordinate, start_row_idx, int_count)
-                    second_parsed = correct_row_index(second_coordinate, start_row_idx, int_count)
-                    
-                    # Put range back together
-                    parsed_cell_range = f"{first_parsed}:{second_parsed}"
+                # Parse
+                parsed_cell_range = correct_row_index(orig_cell_range, start_row_idx, int_count)
                     
                 # Add parsed values to the parsed list (may be unchanged)
                 parsed_vals.append(parsed_cell_range)
@@ -112,10 +139,17 @@ def correct_formula(cell, start_row_idx, int_count):
 def correct_row_index(cell_coordinate, start_row_idx, int_count):
     """
     Helper function to correct_formula()
-    Determines whether cell's coordinate needs to be corrected (row index > [start_row_idx])
-    Adds [int_count] to row index
+    Determines whether cell coordinate or range needs to be corrected (row index > [start_row_idx])
+    Adds [int_count] to row index and returns coordinate or range
     """
     
+    # If range, break into coordinates
+    if ":" in cell_coordinate:
+        start, end = range_to_coords(cell_coordinate)
+        start_parsed = correct_row_index(start, start_row_idx, int_count)
+        end_parsed = correct_row_index(end, start_row_idx, int_count)
+        return f"{start_parsed}:{end_parsed}"
+        
     # Break into column, row
     col, row = coordinate_from_string(cell_coordinate)
     
@@ -125,4 +159,12 @@ def correct_row_index(cell_coordinate, start_row_idx, int_count):
         cell_coordinate = cell_coordinate.replace(str(row), str(new_row))
     
     return cell_coordinate
-    
+
+def range_to_coords(range_coord):
+    """
+    Take a range (A13:B15) and return two coordinates (A13, B15)
+    """
+    colon_idx = range_coord.find(":")
+    first_coord = range_coord[0:colon_idx]
+    second_coord = range_coord[colon_idx+1:]
+    return first_coord, second_coord

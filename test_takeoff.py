@@ -24,7 +24,7 @@ class TestHelperFunctions(unittest.TestCase):
         takeoff.create_new_takeoff(test_file, project_name, num_rows, drilled, test_dir, test_dir)
 
         # Load the test workbook
-        self.test_wb = load_workbook(filename = f"{test_dir}//Takeoff - Unit_Test.xlsx")
+        self.test_wb = load_workbook(filename = f"{test_dir}\\Unit_Test\\PRICING\\Takeoff - Unit_Test.xlsx")
         self.test_ws = self.test_wb["Takeoff-SB"]
         self.test_cells = tuple(self.test_ws)
 
@@ -34,8 +34,13 @@ class TestHelperFunctions(unittest.TestCase):
         self.check_cells = tuple(self.check_ws)
 
     def tearDown(self):
-        self.test_wb.close()
-        self.check_wb.close()
+        del self.test_wb
+        del self.test_ws
+        del self.test_cells
+        
+        del self.check_wb
+        del self.check_ws
+        del self.check_cells
 
     def test_num_rows(self):
 
@@ -63,6 +68,16 @@ class TestHelperFunctions(unittest.TestCase):
                 self.assertEqual(test_cell.coordinate, check_cell.coordinate)
                 self.assertEqual(test_cell.has_style, check_cell.has_style, f"Cell: --{test_cell.coordinate}--, .has_style not equal")
 
+    def test_correct_merge_cells(self):
+        test_ranges = [merge_range.coord for merge_range in self.test_ws.merged_cells.ranges]
+        check_ranges = [merge_range.coord for merge_range in self.check_ws.merged_cells.ranges]
+        self.assertCountEqual(test_ranges, check_ranges)
+        
+    def test_correct_row_heights(self):
+        test_heights = {key: dim.height for key, dim in self.test_ws.row_dimensions.items()}
+        check_heights = {key: dim.height for key, dim in self.check_ws.row_dimensions.items()}
+        self.assertDictEqual(test_heights, check_heights)
+    
     def test_cell_style(self):
 
         # Styles to check
