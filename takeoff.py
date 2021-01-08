@@ -3,7 +3,7 @@ import os
 from openpyxl import load_workbook
 from dotenv import load_dotenv
 
-from helpers import cell_search, copy_row, correct_formula
+from helpers import cell_search, copy_row, correct_formula, correct_comment_height
 
 def main():
 
@@ -62,6 +62,12 @@ def create_new_takeoff(template_file, project_name, num_rows, drilled, temp_dir,
         drill_cell.value = "DRILLED"
     else:
         drill_cell.value = "DRIVEN"
+        
+    # Correct comment heights
+    for row in all_cells:
+        for cell in row:
+            if cell.comment:
+                correct_comment_height(cell)
 
     # Locate the first cell row
     first_cell_row_index = title_row_cell.row + 1

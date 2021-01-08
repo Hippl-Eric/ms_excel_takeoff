@@ -6,6 +6,7 @@ from copy import copy
 
 # Testing
 from openpyxl import Workbook, load_workbook
+import math
 
 def cell_search(cells, value):
     """Return cell location if equal to value
@@ -40,8 +41,6 @@ def copy_row(work_sheet, base_row, int_count):
     
     # Correct List drop down menus
     correct_data_validator(work_sheet, base_row_idx, int_count)
-    
-    # TODO Comments
     
     # Insert rows below the base_row
     work_sheet.insert_rows(base_row_idx + 1, int_count)
@@ -187,8 +186,28 @@ def data_val():
     wb = load_workbook("C:\\Users\\hippl\\OneDrive\\Documents\\Code\\Projects\\batch_scripts\\ms_excel_python\\test_xlsx_files\\data_val.xlsx")
     ws = wb.active
     correct_data_validator(ws, 5, 3)
-    wb.save("\\test_xlsx_files\\data_val_result.xlsx")
+    wb.save("test_xlsx_files\\data_val_result.xlsx")
     pass
 
+def correct_comment_height(cell):
+    num_lines = comment_line_len(cell._comment.text)
+    cell._comment.height = num_lines * 11 * 1.85 # Num_lines * font size * 1.85
+        
+def comment_line_len(comment_str):
+    max_line_length = 22 # Average (may not be perfect, depends on char width in pixels)
+    
+    # Split at newline
+    new_line_list = comment_str.splitlines()
+    
+    # Calculate num of rows based on max_line_length
+    count = 0
+    for string in new_line_list:
+        if len(string) > 0:
+            count += math.ceil(len(string) / max_line_length)
+        else:
+            count += 1
+
+    return count
+            
 if __name__ == "__main__":
-    data_val()
+    comment_line_len('Eric Hippler:\nHey this is a long comment that has long lines with no breaks.\n\n\nAnd some more\nAnd some more more more more more\n\nOne more for good measure')
