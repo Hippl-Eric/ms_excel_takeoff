@@ -21,7 +21,11 @@ class TestHelperFunctions(unittest.TestCase):
             drilled = False
         
         # Create a takeoff (excel) file to test
-        takeoff.create_new_takeoff(test_file, project_name, num_rows, drilled, test_dir, test_dir)
+        test_file_path = f"{test_dir}\\{test_file}"
+        wb = load_workbook(filename = test_file_path)
+        takeoff.create_new_takeoff(wb, project_name, num_rows, drilled)
+        file_name = f"{test_dir}\\{project_name}\\PRICING\\Takeoff - {project_name}.xlsx"
+        wb.save(file_name)
 
         # Load the test workbook
         self.test_wb = load_workbook(filename = f"{test_dir}\\Unit_Test\\PRICING\\Takeoff - Unit_Test.xlsx")
