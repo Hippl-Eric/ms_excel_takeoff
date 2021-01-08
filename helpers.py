@@ -4,6 +4,9 @@ from openpyxl.utils.cell import coordinate_from_string
 
 from copy import copy
 
+# Testing
+from openpyxl import Workbook, load_workbook
+
 def cell_search(cells, value):
     """Return cell location if equal to value
     
@@ -35,7 +38,9 @@ def copy_row(work_sheet, base_row, int_count):
     # Correct worksheet row heights for rows below the base row
     correct_row_heights(work_sheet, base_row_idx, int_count)
     
-    # TODO List drop down menus
+    # Correct List drop down menus
+    correct_data_validator(work_sheet, base_row_idx, int_count)
+    
     # TODO Comments
     
     # Insert rows below the base_row
@@ -86,18 +91,27 @@ def correct_merge_cells(work_sheet, base_row_idx, int_count):
         
 def correct_row_heights(work_sheet, base_row_idx, int_count):
     
-    # Create list of initial row heights
-    work_sheet_row_heights = {idx: dim.height for idx, dim in work_sheet.row_dimensions.items()}
+    # Create list of initial row heights below base row
+    work_sheet_row_heights = {idx: dim.height for idx, dim in work_sheet.row_dimensions.items() if idx > base_row_idx}
     for idx, height in work_sheet_row_heights.items():
         
-        # Change row heights for rows below base row
-        if idx > base_row_idx:
+        # Delete the original row height object
+        del work_sheet.row_dimensions[idx]
+        
+        # Set new row height
+        work_sheet.row_dimensions[idx + int_count].height = height
             
-            # Delete the original row height object
-            del work_sheet.row_dimensions[idx]
-            
-            # Set new row 
-            work_sheet.row_dimensions[idx + int_count].height = height
+def correct_data_validator(work_sheet, base_row_idx, int_count):
+    
+    # Currently only checking for and parsing "lists"
+    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.worksheet.datavalidation.html?highlight=drop%20down%20list#openpyxl.worksheet.datavalidation.DataValidation.type
+    if work_sheet.data_validations.dataValidation:
+        for data_valid in work_sheet.data_validations.dataValidation:
+            if data_valid.type == "list":
+                if data_valid.formula1:
+                    data_valid.formula1 = correct_row_index(data_valid.formula1, base_row_idx, int_count)
+                if data_valid.formula2:
+                    data_valid.formula2 = correct_row_index(data_valid.formula2, base_row_idx, int_count)
 
 def correct_formula(cell, start_row_idx, int_count):
     """
@@ -168,3 +182,13 @@ def range_to_coords(range_coord):
     first_coord = range_coord[0:colon_idx]
     second_coord = range_coord[colon_idx+1:]
     return first_coord, second_coord
+
+def data_val():
+    wb = load_workbook("C:\\Users\\hippl\\OneDrive\\Documents\\Code\\Projects\\batch_scripts\\ms_excel_python\\test_xlsx_files\\data_val.xlsx")
+    ws = wb.active
+    correct_data_validator(ws, 5, 3)
+    wb.save("\\test_xlsx_files\\data_val_result.xlsx")
+    pass
+
+if __name__ == "__main__":
+    data_val()

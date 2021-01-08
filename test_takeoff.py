@@ -77,6 +77,11 @@ class TestHelperFunctions(unittest.TestCase):
         test_heights = {key: dim.height for key, dim in self.test_ws.row_dimensions.items()}
         check_heights = {key: dim.height for key, dim in self.check_ws.row_dimensions.items()}
         self.assertDictEqual(test_heights, check_heights)
+        
+    def test_correct_data_validator(self):
+        test_dropdowns = {data_val.cells.ranges[0].coord: data_val.formula1 for data_val in self.test_ws.data_validations.dataValidation if data_val.type == "list"}
+        check_dropdowns = {data_val.cells.ranges[0].coord: data_val.formula1 for data_val in self.check_ws.data_validations.dataValidation if data_val.type == "list"}
+        self.assertDictEqual(test_dropdowns, check_dropdowns)
     
     def test_cell_style(self):
 
