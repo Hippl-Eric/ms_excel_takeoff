@@ -1,12 +1,10 @@
+import math
+
 from openpyxl.formula.translate import Translator
 from openpyxl.formula import Tokenizer
 from openpyxl.utils.cell import coordinate_from_string
 
 from copy import copy
-
-# Testing
-from openpyxl import Workbook, load_workbook
-import math
 
 def cell_search(cells, value):
     """Return cell location if equal to value
@@ -182,13 +180,6 @@ def range_to_coords(range_coord):
     second_coord = range_coord[colon_idx+1:]
     return first_coord, second_coord
 
-def data_val():
-    wb = load_workbook("C:\\Users\\hippl\\OneDrive\\Documents\\Code\\Projects\\batch_scripts\\ms_excel_python\\test_xlsx_files\\data_val.xlsx")
-    ws = wb.active
-    correct_data_validator(ws, 5, 3)
-    wb.save("test_xlsx_files\\data_val_result.xlsx")
-    pass
-
 def correct_comment_height(cell):
     num_lines = comment_line_len(cell._comment.text)
     cell._comment.height = num_lines * 11 * 1.85 # Num_lines * font size * 1.85
@@ -206,8 +197,4 @@ def comment_line_len(comment_str):
             count += math.ceil(len(string) / max_line_length)
         else:
             count += 1
-
     return count
-            
-if __name__ == "__main__":
-    comment_line_len('Eric Hippler:\nHey this is a long comment that has long lines with no breaks.\n\n\nAnd some more\nAnd some more more more more more\n\nOne more for good measure')
