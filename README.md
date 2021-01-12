@@ -33,8 +33,9 @@ Main script for modifying a template excel workbook.  Receive user input for pro
 #### helpers.py
 Helper functions that support takeoff.py.
 #### test_takeoff.py
-Uses setUp and tearDown methods to create a test workbook and load a check workbook.  Completes numerous tests utilizing asserts to test values, lists, and dicts.  Custom error messaging is used to pinpoint error locations in files.
+Unit testing for takeoff.py.  Utilizes setUp and tearDown methods to create a test workbook and load a check workbook.  Completes numerous tests utilizing asserts to test values, lists, and dicts.  Custom error messaging is used to pinpoint error locations in files.
 #### test_helpers.py
+Unit testing for helpers.py.
 
 ### What I Learned
 - Working with an open source project - Documentation for the project is sparse in areas and required digging into source code to find what I needed.
