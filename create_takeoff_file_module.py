@@ -7,8 +7,8 @@ def main():
     # Load template file
     temp_file = tk.filedialog.askopenfilename()
     wb = load_workbook(temp_file)
-    dest_file = tk.filedialog.asksaveasfilename()
-    wb.save(dest_file)
+    dest_file = tk.filedialog.asksaveasfile(mode='w', initialfile="Takeoff - Project Name", defaultextension=".xlsx")
+    wb.save(dest_file.name)
     pass
     # Load workbook
     # Create new takeoff
