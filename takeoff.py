@@ -5,39 +5,6 @@ from dotenv import load_dotenv
 
 from helpers import cell_search, copy_row, correct_formula, correct_comment_height
 
-def main():
-
-    # Request and parse user inputs
-    # TODO parse user inputs
-    project_name = input("Project Name: ")
-    num_rows = int(input("Number of SBs: ")) - 1
-    drilled = True
-    install = input("Drilled? (Y/N): ")
-    if install == "no" or install == "No" or install == "n" or install == "N" or install == "NO":
-        drilled = False
-
-    # Load directory locations and template file
-    load_dotenv()
-    template_dir = os.getenv("TEMPLATE_DIR") # template location
-    dest_dir = os.getenv("BID_DIR") # bids location
-    template_file = os.getenv("TEMPLATE_FILE")
-    template_file_path = f"{template_dir}\\{template_file}"
-    
-    wb = load_workbook(filename = template_file_path)
-
-    create_new_takeoff(wb, project_name, num_rows, drilled)
-    
-    # Save workbook in new project directory
-    file_name = f"{dest_dir}\\{project_name}\\PRICING\\Takeoff - {project_name}.xlsx"
-    while file_name != f"quit\\Takeoff - {project_name}.xlsx":
-        try:
-            wb.save(file_name)
-            return True
-        except FileNotFoundError:
-            file_path = input("Bid file location not found. Specify path to save file, or 'quit':  ")
-            file_name = f"{file_path}\\Takeoff - {project_name}.xlsx"
-    return False
-
 def create_new_takeoff(wb, project_name, num_rows, drilled):
     """Description
 
@@ -113,6 +80,3 @@ def create_new_takeoff(wb, project_name, num_rows, drilled):
 
     # Set print area
     ws.print_area = f"{old_area[:colon_idx + 1]}{end_coordinate_new}"
-
-if __name__ == "__main__":
-    main()
