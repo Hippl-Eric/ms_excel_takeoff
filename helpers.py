@@ -116,36 +116,31 @@ def correct_formula(cell, start_row_idx, int_count):
     Mimics Excel's built in functionality for a cell's formula to be relative (not absolute)
     """
     # Parse only cells with formulas
-    try:
-        formula = cell.value.startswith("=")
-    except AttributeError:
-        pass
-    else:
-        if formula:
+    if cell.data_type == 'f':
+        
+        # Tokenize formula and make list of all coordinates and ranges
+        formula_str = cell.value
+        tok = Tokenizer(formula_str)
+        original_vals = [t.value for t in tok.items if t.subtype == 'RANGE']
+        
+        # Create list for parsed values to be added to
+        parsed_vals = []
+        
+        # Check all original coordinate and range values
+        for orig_cell_range in original_vals:
             
-            # Tokenize formula and make list of all coordinates and ranges
-            formula_str = cell.value
-            tok = Tokenizer(formula_str)
-            original_vals = [t.value for t in tok.items if t.subtype == 'RANGE']
-            
-            # Create list for parsed values to be added to
-            parsed_vals = []
-            
-            # Check all original coordinate and range values
-            for orig_cell_range in original_vals:
+            # Parse
+            parsed_cell_range = correct_row_index(orig_cell_range, start_row_idx, int_count)
                 
-                # Parse
-                parsed_cell_range = correct_row_index(orig_cell_range, start_row_idx, int_count)
-                    
-                # Add parsed values to the parsed list (may be unchanged)
-                parsed_vals.append(parsed_cell_range)
-                
-            # Replace all original coordinates of formula with parsed coordinates
-            for orig, parsed in zip(original_vals, parsed_vals):
-                formula_str = formula_str.replace(orig, parsed, 1)
+            # Add parsed values to the parsed list (may be unchanged)
+            parsed_vals.append(parsed_cell_range)
             
-            # Set the cell's value to new formula string
-            cell.value = formula_str
+        # Replace all original coordinates of formula with parsed coordinates
+        for orig, parsed in zip(original_vals, parsed_vals):
+            formula_str = formula_str.replace(orig, parsed, 1)
+        
+        # Set the cell's value to new formula string
+        cell.value = formula_str
     
 def correct_row_index(cell_coordinate, start_row_idx, int_count):
     """
