@@ -8,12 +8,10 @@ from helpers import cell_search, copy_row, correct_formula, correct_comment_heig
 def create_new_takeoff(wb, project_name, num_rows, drilled):
     """Description
 
-    [template_file] string, filename
+    [wb] openpyxl wb object
     [project_name] string
-    [num_rows] int
+    [num_rows] non-negative int
     [drilled] bool
-    [temp_dir] string, directory of template file
-    [dest_dir] string, directory to save new file
     """
 
     # Load base template worksheet
