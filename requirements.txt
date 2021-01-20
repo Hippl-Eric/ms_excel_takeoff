@@ -2,3 +2,4 @@ et-xmlfile==1.0.1
 jdcal==1.4.1
 openpyxl==3.0.4
 python-dotenv==0.14.0
+pywin32==300
