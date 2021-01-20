@@ -27,10 +27,6 @@ def copy_row(work_sheet, base_row, int_count):
     """
     base_row_idx = base_row[0].row
 
-    # Create list of style attributes to check later
-    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
-    style_list = ["alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix"]
-
     # Correct any merged cells below the base row
     correct_merge_cells(work_sheet, base_row_idx, int_count)
     
@@ -49,6 +45,10 @@ def copy_row(work_sheet, base_row, int_count):
         for i in range(base_row_idx+1,base_row_idx+1+int_count):
             work_sheet.row_dimensions[i].height = base_row_height
     
+    # Create list of style attributes to check later
+    # https://openpyxl.readthedocs.io/en/stable/api/openpyxl.styles.styleable.html#openpyxl.styles.styleable.StyleableObject
+    styles = ("alignment", "border", "fill", "font", "number_format", "protection", "quotePrefix")
+
     # Iterate over each cell in the base row
     for cell in base_row:
         
@@ -69,7 +69,7 @@ def copy_row(work_sheet, base_row, int_count):
 
             # Copy any styling
             if cell.has_style:
-                for style in style_list:
+                for style in styles:
                     setattr(new_cell, style, copy(getattr(cell, style)))
 
 def correct_merge_cells(work_sheet, base_row_idx, int_count):
