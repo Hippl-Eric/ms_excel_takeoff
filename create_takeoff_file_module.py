@@ -1,5 +1,7 @@
 import os
+import time
 import tkinter as tk
+import win32com.client as win32
 from tkinter import filedialog
 from dotenv import load_dotenv
 from openpyxl import load_workbook
@@ -57,6 +59,8 @@ def main():
                 initialfile=f"Takeoff - {project_name}", 
                 defaultextension=".xlsx")
             )
+            dest_file_path = dest_file.name
+            dest_file.close()
             break
         except PermissionError as e:
             print(e)
@@ -64,11 +68,39 @@ def main():
     
     # Save the workbook
     try:
-        wb.save(dest_file.name)
+        wb.save(dest_file_path)
         
     # User clicked cancel in tkinter "asksaveasfile" prompt, don't save file
     except AttributeError:
         pass
+    
+    else:
+        openExcel(dest_file_path)
+
+
+def openExcel(file_name_path):
+    """
+    Use win32com to open specificed excel file
+    [file_name_path] absolute path to excel file
+    """
+
+    # Launch excel application and open file
+    count = 0
+    while True and count < 3:
+        try:
+            excel = win32.gencache.EnsureDispatch('Excel.Application')
+            excel.Workbooks.Open(file_name_path)
+            break
+        except Exception as e:
+            count += 1
+            print(f"Try {count}...")
+            time.sleep(1)
+        else:
+            excel.Visible = True
+        finally:
+            # Release excel
+            del excel
 
 if __name__ == "__main__":
     main()
+    
