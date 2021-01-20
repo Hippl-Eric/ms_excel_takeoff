@@ -80,24 +80,27 @@ def main():
 
 def openExcel(file_name_path):
     """
-    Use win32com to open specificed excel file
+    Use win32com to open specificed excel file,
     [file_name_path] absolute path to excel file
     """
 
-    # Launch excel application and open file
+    # Establish a try count for opening file
     count = 0
     while True and count < 3:
         try:
             excel = win32.gencache.EnsureDispatch('Excel.Application')
             excel.Workbooks.Open(file_name_path)
-            break
+        
+        # If openpyxl is slow to save the excel file, wait 1 second, try again, max 3 times
         except Exception as e:
             count += 1
             print(f"Try {count}...")
             time.sleep(1)
         else:
             excel.Visible = True
+            break
         finally:
+            
             # Release excel
             del excel
 
